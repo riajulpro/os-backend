@@ -9,7 +9,6 @@ import routes from "./routes/index";
 
 const app: Application = express();
 
-// Apply CORS middleware
 app.use(
   cors({
     origin: "*",
