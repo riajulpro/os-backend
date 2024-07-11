@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.recoverPassword = exports.forgotPassword = exports.resetPassword = exports.loginController = exports.createStaffController = exports.createCustomerController = void 0;
+exports.recoverPassword = exports.forgotPassword = exports.resetPassword = exports.loginController = exports.createStaffController = exports.genereteAccessToken = exports.createCustomerController = exports.authSateController = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
@@ -23,6 +23,10 @@ const staff_model_1 = __importDefault(require("../models/staff.model"));
 const jwtToken_1 = require("../utils/jwtToken");
 const sendMessage_1 = __importDefault(require("../utils/sendMessage"));
 const sendResponse_1 = __importDefault(require("../utils/sendResponse"));
+exports.authSateController = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    res.json({ success: true, message: "User state get", data: user });
+}));
 exports.createCustomerController = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { body } = req;
     const isExistCustomer = yield auth_model_1.default.findOne({ email: body.email });
@@ -37,15 +41,57 @@ exports.createCustomerController = (0, catchAsyncErrors_1.default)((req, res) =>
     const customer = customer_model_1.default.create(Object.assign(Object.assign({}, body), { auth: auth._id }));
     const token = (0, jwtToken_1.createAcessToken)({
         email: auth.email,
-        userId: auth._id,
+        authId: auth._id,
         role: auth.role,
     }, "1h");
+    const refreshToken = (0, jwtToken_1.createRefreshToken)({
+        email: auth.email,
+        authId: auth._id,
+        role: auth.role,
+    });
     res.json({
         data: customer,
         message: "Customer created successfully",
         success: true,
         accessToken: token,
+        refreshToken,
     });
+}));
+exports.genereteAccessToken = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const getToken = req.header("Authorization");
+    if (!getToken)
+        return res.status(400).json({ msg: "Invalid Authentication." });
+    const refreshToken = getToken.split(" ")[1];
+    console.log({ refreshToken });
+    const refreshTokenSecret = process.env.JWT_REFRESH_SECRET;
+    try {
+        const decoded = jsonwebtoken_1.default.verify(refreshToken, refreshTokenSecret);
+        const user = decoded.user;
+        const accessTOkenPayload = {
+            email: user.email,
+            authId: user.authId,
+            role: user.role,
+        };
+        const isExistUser = yield auth_model_1.default.findById(user.authId);
+        if (!isExistUser) {
+            return (0, sendResponse_1.default)(res, {
+                success: false,
+                data: null,
+                message: "User not found",
+                statusCode: 404,
+            });
+        }
+        const newAccessToken = (0, jwtToken_1.createAcessToken)(accessTOkenPayload, "1h");
+        (0, sendResponse_1.default)(res, {
+            success: true,
+            message: "Successfully retrive access token",
+            data: { accessToken: newAccessToken },
+        });
+    }
+    catch (error) {
+        console.error("Error decoding or verifying refresh token:", error);
+        res.status(403).json({ message: "Invalid refresh token" });
+    }
 }));
 exports.createStaffController = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { body } = req;
@@ -53,7 +99,7 @@ exports.createStaffController = (0, catchAsyncErrors_1.default)((req, res) => __
     const customer = staff_model_1.default.create(Object.assign(Object.assign({}, body), { auth: auth._id }));
     const token = (0, jwtToken_1.createAcessToken)({
         email: auth.email,
-        userId: auth._id,
+        _id: auth._id,
         role: auth.role,
     }, "1h");
     res.json({
@@ -95,16 +141,17 @@ exports.loginController = (0, catchAsyncErrors_1.default)((req, res) => __awaite
     }
     const token = (0, jwtToken_1.createAcessToken)({
         email: isExistUser.email,
-        userId: isExistUser._id,
+        authId: isExistUser._id,
         role: isExistUser.role,
     }, "1h");
     const refreshToken = (0, jwtToken_1.createRefreshToken)({
         email: isExistUser.email,
-        userId: isExistUser._id,
+        authId: isExistUser._id,
         role: isExistUser.role,
     });
+    const userOBj = (user === null || user === void 0 ? void 0 : user.toObject()) || {};
     res.json({
-        data: Object.assign(Object.assign({}, user), { role: isExistUser.role }),
+        data: Object.assign(Object.assign({}, userOBj), { role: isExistUser.role }),
         message: "Login successfull",
         success: true,
         accessToken: token,
@@ -217,7 +264,7 @@ exports.recoverPassword = (0, catchAsyncErrors_1.default)((req, res) => __awaite
     user.password = hashedPassword;
     const tokenPayload = {
         email: user.email,
-        userId: user._id,
+        _id: user._id,
         role: user.role,
     };
     const accessToken = (0, jwtToken_1.createAcessToken)(tokenPayload, "1h");

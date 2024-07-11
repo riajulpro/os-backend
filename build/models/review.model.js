@@ -8,10 +8,12 @@ const reviewSchema = new mongoose_1.default.Schema({
     productId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         required: true,
+        ref: "Product",
     },
     customerId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         required: true,
+        ref: "Customer",
     },
     text: {
         type: String,

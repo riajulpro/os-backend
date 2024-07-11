@@ -35,15 +35,12 @@ const productSchema = new mongoose_1.default.Schema({
         required: true,
     },
     brand: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Brand",
         required: true,
     },
-    cell: {
-        type: String,
-        // required: true,
-    },
     service: {
-        type: Object,
+        type: Object || String,
         // required: true,
     },
     averageRating: {
@@ -52,9 +49,9 @@ const productSchema = new mongoose_1.default.Schema({
         default: 0,
     },
     tag: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
         required: false,
-        default: "",
+        ref: "Tag",
     },
 });
 const Product = mongoose_1.default.model("Product", productSchema);

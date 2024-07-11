@@ -29,7 +29,8 @@ exports.createProductController = (0, catchAsyncErrors_1.default)((req, res, nex
             data: null,
         });
     }
-    const { name, photo, category, stock, price, discountPrice, brand, cell, service, } = req.body;
+    const { name, photo, category, stock, price, discountPrice, brand, service, description, } = req.body;
+    console.log("aaaaaa", req.body);
     try {
         const newProduct = yield product_model_1.default.create({
             name,
@@ -39,7 +40,7 @@ exports.createProductController = (0, catchAsyncErrors_1.default)((req, res, nex
             price,
             discountPrice,
             brand,
-            cell,
+            description,
             service,
         });
         (0, sendResponse_1.default)(res, {
@@ -65,20 +66,23 @@ exports.getAllProductsController = (0, catchAsyncErrors_1.default)((req, res, ne
             .search(["name", "brand"])
             .filter();
         const totalDocuments = yield baseQueryBuilder.modelQuery.countDocuments();
-        console.log("aaa total", totalDocuments);
+        // console.log("aaa total", totalDocuments);
         const queryBuilder = new QueryBuilder_1.default(product_model_1.default.find(), req.query)
             .search(["name", "brand"])
             .filter()
             .sort()
             .paginate()
             .fields();
-        const products = yield queryBuilder.modelQuery;
+        const products = yield queryBuilder.modelQuery
+            .populate("category")
+            .populate("brand")
+            .populate("tag");
         (0, sendResponse_1.default)(res, {
             statusCode: 200,
             success: true,
             message: "Products fetched successfully ff",
             data: products,
-            total: totalDocuments
+            total: totalDocuments,
         });
     }
     catch (error) {
@@ -95,7 +99,10 @@ exports.getAllProductsController = (0, catchAsyncErrors_1.default)((req, res, ne
 exports.getProductByIdController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const product = yield product_model_1.default.findById(id).populate("category", ["label", "value"]);
+        const product = yield product_model_1.default.findById(id).populate("category", [
+            "label",
+            "value",
+        ]);
         if (!product) {
             return (0, sendResponse_1.default)(res, {
                 statusCode: 404,

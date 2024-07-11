@@ -2,10 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const sell_controller_1 = require("../controllers/sell.controller");
+const auth_1 = require("../middlewares/auth");
 const router = (0, express_1.Router)();
 router.post("/", sell_controller_1.createSellController);
 router.get("/", sell_controller_1.getAllSellsController);
 router.get("/:id", sell_controller_1.getSellByIdController);
 router.patch("/:id", sell_controller_1.updateSellController);
 router.delete("/:id", sell_controller_1.deleteSellController);
+router.get("/my/orders", auth_1.isAuthenticatedUser, sell_controller_1.getCustomerBasedSellsController);
+router.get("/my/order/:orderId", auth_1.isAuthenticatedUser, sell_controller_1.trackCustomerOrder);
+router.get("/earning/get", sell_controller_1.getGenerateYearlyEarnings);
+router.get("/my-orders", auth_1.isAuthenticatedUser, sell_controller_1.getCustomerBasedSellsController);
 exports.default = router;

@@ -14,30 +14,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorizeRoles = exports.isAuthenticatedUser = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const errorhandler_1 = __importDefault(require("../utils/errorhandler"));
 const auth_model_1 = __importDefault(require("../models/auth.model"));
+const errorhandler_1 = __importDefault(require("../utils/errorhandler"));
 const isAuthenticatedUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const getToken = req.header("Authorization");
-        // console.log(getToken);
-        // console.log(getToken);
         if (!getToken)
-            return res.status(400).json({ msg: "Invalid Authentication." });
+            return res.status(400).json({ message: "Invalid Authentication." });
         const token = getToken.split(" ")[1];
+        if (!token) {
+            return res.status(400).json({ message: "Token not provided" });
+        }
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_ACCESS_SECRET);
         // console.log("desss", decoded);
         if (!decoded)
-            return res.status(400).json({ msg: "Invalid Authentication." });
-        const user = yield auth_model_1.default.findOne({ _id: (_a = decoded === null || decoded === void 0 ? void 0 : decoded.user) === null || _a === void 0 ? void 0 : _a.userId }).select("-password");
+            return res.status(401).json({ message: "Invalid Authentication." });
+        const user = yield auth_model_1.default.findOne({
+            _id: (_a = decoded === null || decoded === void 0 ? void 0 : decoded.user) === null || _a === void 0 ? void 0 : _a.authId,
+        }).select("-password");
         if (!user)
-            return res.status(400).json({ msg: "User does not exist." });
+            return res.status(400).json({ message: "User does not exist." });
         // console.log("user =======", user);
         req.user = user;
         next();
     }
     catch (err) {
-        return res.status(500).json({ msg: err.message });
+        return res.status(401).json({ message: err.message });
     }
 });
 exports.isAuthenticatedUser = isAuthenticatedUser;
