@@ -15,6 +15,7 @@ const fileupload_route_1 = __importDefault(require("./fileupload.route"));
 const customer_route_1 = __importDefault(require("./customer.route"));
 const payment_route_1 = __importDefault(require("./payment.route"));
 const contactus_route_1 = __importDefault(require("./contactus.route"));
+const billing_route_1 = __importDefault(require("./billing.route"));
 const router = express_1.default.Router();
 const moduleRoute = [
     {
@@ -60,6 +61,10 @@ const moduleRoute = [
     {
         path: "/contact",
         route: contactus_route_1.default,
+    },
+    {
+        path: "/billing",
+        route: billing_route_1.default,
     },
 ];
 moduleRoute.forEach((route) => router.use(route.path, route.route));

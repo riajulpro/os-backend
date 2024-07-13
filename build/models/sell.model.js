@@ -13,7 +13,7 @@ const SellSchema = new mongoose_1.default.Schema({
                 ref: "Product",
             },
             quantity: {
-                type: String,
+                type: Number,
                 required: true,
             },
         },

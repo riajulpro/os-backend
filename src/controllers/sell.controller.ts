@@ -21,15 +21,8 @@ export const createSellController = catchAsyncError(
       });
     }
 
-    const {
-      sellData,
-      totalAmount,
-      paymentMethod,
-      paymentStatus,
-      customer,
-      date,
-      status,
-    } = req.body;
+    const { sellData, totalAmount, paymentMethod, paymentStatus, customer } =
+      req.body;
 
     try {
       const customerExists = await Customer.findById(customer);
@@ -44,8 +37,9 @@ export const createSellController = catchAsyncError(
       }
 
       for (const item of sellData) {
-        const { productId, quantity } = item;
-        const product = await Product.findById(productId);
+        const { id, quantity } = item;
+
+        const product = await Product.findById(id);
 
         if (!product) {
           return sendResponse(res, {
@@ -79,14 +73,20 @@ export const createSellController = catchAsyncError(
         await product.save();
       }
 
+      console.log(sellData);
+
+      const sells = sellData.map((sell: any) => ({
+        productId: sell.id,
+        quantity: parseInt(sell.quantity),
+      }));
+
       const newSell = await Sell.create({
-        sellData,
+        sellData: sells,
         totalAmount,
         paymentMethod,
         paymentStatus,
         customer,
-        date,
-        status,
+        date: new Date(),
       });
 
       sendResponse(res, {
@@ -145,7 +145,7 @@ export const trackCustomerOrder = catchAsyncError(async (req, res) => {
 
   const isExistOrder = await Sell.findById(orderId)
     .populate("customer")
-    .populate("productId");
+    .populate("sellData.productId");
   if (!isExistOrder) {
     return sendResponse(res, {
       success: false,

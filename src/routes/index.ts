@@ -10,6 +10,8 @@ import file from "./fileupload.route";
 import customerRoute from "./customer.route";
 import paymentRoutes from "./payment.route";
 import contactUs from "./contactus.route";
+import billingRoute from "./billing.route";
+
 const router = express.Router();
 
 const moduleRoute = [
@@ -56,6 +58,10 @@ const moduleRoute = [
   {
     path: "/contact",
     route: contactUs,
+  },
+  {
+    path: "/billing",
+    route: billingRoute,
   },
 ];
 

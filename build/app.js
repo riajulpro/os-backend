@@ -11,7 +11,6 @@ const db_1 = __importDefault(require("./config/db"));
 const error_1 = __importDefault(require("./middlewares/error"));
 const index_1 = __importDefault(require("./routes/index"));
 const app = (0, express_1.default)();
-// Apply CORS middleware
 app.use((0, cors_1.default)({
     origin: "*",
 }));
