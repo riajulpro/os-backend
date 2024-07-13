@@ -8,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.post("/", isAuthenticatedUser, createBillingInfo);
+router.post("/", createBillingInfo);
 router.get("/:id", isAuthenticatedUser, getBillingInfo);
 router.patch("/:id", isAuthenticatedUser, updateBillingInfo);
 
